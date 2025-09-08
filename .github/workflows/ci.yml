@@ -8,7 +8,24 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
+  tests-pass:
+    name: all systems go
+    runs-on: ubuntu-latest
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
+    steps:
+      - run: exit 1
+    needs:
+      - tests
+      - rustfmt
+      - clippy
+      - book_examples
+      - examples
+      - autocorrect
+
   tests:
     name: Run tests - Rust (${{ matrix.rust }}) on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
