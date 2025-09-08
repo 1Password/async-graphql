@@ -19,10 +19,8 @@ jobs:
       - name: Render book
         run: |
           mdbook build -d gh-pages docs/en
-          mdbook build -d gh-pages docs/zh-CN
           mkdir gh-pages
           mv docs/en/gh-pages gh-pages/en
-          mv docs/zh-CN/gh-pages gh-pages/zh-CN
           mv docs/index.html gh-pages
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
