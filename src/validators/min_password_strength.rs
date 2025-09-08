@@ -1,4 +1,4 @@
-use zxcvbn::{zxcvbn, Score};
+use zxcvbn::{Score, zxcvbn};
 
 use crate::{InputType, InputValueError};
 
