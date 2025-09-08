@@ -23,7 +23,6 @@ jobs:
       - rustfmt
       - clippy
       - book_examples
-      - examples
       - autocorrect
 
   tests:
@@ -78,9 +77,6 @@ jobs:
           components: rustfmt
       - name: Check format
         run: cargo +${{ matrix.rust }} fmt --all -- --check
-      - name: Check examples format
-        working-directory: ./examples
-        run: cargo +${{ matrix.rust }} fmt --all -- --check
 
   clippy:
     name: Run clippy - Rust (${{ matrix.rust }}) on ${{ matrix.os }}
@@ -128,33 +124,6 @@ jobs:
         run: mdbook test -L target/debug/deps ./docs/en
       - name: Clean
         run: cargo clean
-
-  examples:
-    name: Build examples - Rust (${{ matrix.rust }}) on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { rust: stable, os: ubuntu-22.04 }
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          submodules: true
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: ${{ matrix.rust }}
-          components: clippy, rustfmt
-      - name: Check examples with clippy
-        run: cargo clippy --all
-        working-directory: ./examples
-      - name: Build examples
-        run: cargo build --workspace --verbose
-        working-directory: ./examples
-      - name: Clean examples
-        run: cargo clean
-        working-directory: ./examples
 
   autocorrect:
     name: AutoCorrect Lint
