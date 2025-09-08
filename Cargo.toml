@@ -139,7 +139,6 @@ members = [
   "parser",
   "derive",
   "integrations/poem",
-  "integrations/actix-web",
   "integrations/rocket",
   "integrations/warp",
   "integrations/axum",
