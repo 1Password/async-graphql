@@ -55,41 +55,6 @@ let schema = Schema::build(Query::default(), EmptyMutation, EmptySubscription)
     .finish();
 ```
 
-### Request data
-
-You can put data inside the context at the execution of the request, it's useful for authentication data for instance.
-
-A little example with a `warp` route:
-
-```rust
-# extern crate async_graphql;
-# extern crate async_graphql_warp;
-# extern crate warp;
-# use async_graphql::*;
-# use warp::{Filter, Reply};
-# use std::convert::Infallible;
-# #[derive(Default, SimpleObject)]
-# struct Query { name: String }
-# struct AuthInfo { pub token: Option<String> }
-# let schema = Schema::build(Query::default(), EmptyMutation, EmptySubscription).finish();
-# let schema_filter = async_graphql_warp::graphql(schema);
-let graphql_post = warp::post()
-  .and(warp::path("graphql"))
-  .and(warp::header::optional("Authorization"))
-  .and(schema_filter)
-  .and_then( |auth: Option<String>, (schema, mut request): (Schema<Query, EmptyMutation, EmptySubscription>, async_graphql::Request)| async move {
-    // Do something to get auth data from the header
-    let your_auth_data = AuthInfo { token: auth };
-    let response = schema
-      .execute(
-        request
-         .data(your_auth_data)
-      ).await;
-
-    Ok::<_, Infallible>(async_graphql_warp::GraphQLResponse::from(response))
-  });
-```
-
 ## Headers
 
 With the Context you can also insert and appends headers.
