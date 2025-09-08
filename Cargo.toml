@@ -139,7 +139,6 @@ members = [
   "parser",
   "derive",
   "integrations/axum",
-  "integrations/tide",
 ]
 
 [workspace.dependencies]
