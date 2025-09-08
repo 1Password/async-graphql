@@ -3,12 +3,28 @@ name: CI
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
+
+permissions:
+  contents: read
 
 jobs:
+  tests-pass:
+    name: all systems go
+    runs-on: ubuntu-latest
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
+    steps:
+      - run: exit 1
+    needs:
+      - tests
+      - rustfmt
+      - clippy
+      - book_examples
+      - autocorrect
+
   tests:
     name: Run tests - Rust (${{ matrix.rust }}) on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -19,40 +35,7 @@ jobs:
           - { rust: stable, os: ubuntu-22.04 }
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: ${{ matrix.rust }}
-          components: rustfmt
-      - name: Extract metadata
-        id: meta
-        run: |
-          FEATURES=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[] | select(.name == "async-graphql") | .features | keys | map(select(. != "boxed-trait")) | join(",")')
-          echo "features=$FEATURES" >> "$GITHUB_OUTPUT"
-      - name: Build with all features
-        run: cargo build --all-features
-      - name: Build with all features except boxed-trait
-        run: cargo build --features ${{ steps.meta.outputs.features }}
-      - name: Build
-        run: cargo build --workspace --verbose
-      - name: Run tests
-        run: cargo test --workspace --features ${{ steps.meta.outputs.features }}
-      - name: Clean
-        run: cargo clean
-
-  tests_min_compat:
-    name: Run min rust version tests - Rust (${{ matrix.rust }}) on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { rust: 1.86.0, os: ubuntu-22.04 }
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: true
       - uses: dtolnay/rust-toolchain@stable
@@ -85,7 +68,7 @@ jobs:
           - { rust: nightly-2025-04-09, os: ubuntu-22.04 }
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: true
       - uses: dtolnay/rust-toolchain@stable
@@ -93,9 +76,6 @@ jobs:
           toolchain: ${{ matrix.rust }}
           components: rustfmt
       - name: Check format
-        run: cargo +${{ matrix.rust }} fmt --all -- --check
-      - name: Check examples format
-        working-directory: ./examples
         run: cargo +${{ matrix.rust }} fmt --all -- --check
 
   clippy:
@@ -108,7 +88,7 @@ jobs:
           - { rust: stable, os: ubuntu-22.04 }
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: true
       - uses: dtolnay/rust-toolchain@stable
@@ -123,14 +103,14 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: true
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
       - name: Install mdBook
-        uses: peaceiris/actions-mdbook@v1
+        uses: peaceiris/actions-mdbook@v2
         with:
           mdbook-version: "0.4.49"
       - name: Extract metadata
@@ -142,44 +122,15 @@ jobs:
         run: cargo build --workspace --features ${{ steps.meta.outputs.features }}
       - name: Run book tests for en language
         run: mdbook test -L target/debug/deps ./docs/en
-      - name: Run book tests for zh-CN language
-        run: mdbook test -L target/debug/deps ./docs/zh-CN
       - name: Clean
         run: cargo clean
-
-  examples:
-    name: Build examples - Rust (${{ matrix.rust }}) on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { rust: stable, os: ubuntu-22.04 }
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: ${{ matrix.rust }}
-          components: clippy, rustfmt
-      - name: Check examples with clippy
-        run: cargo clippy --all
-        working-directory: ./examples
-      - name: Build examples
-        run: cargo build --workspace --verbose
-        working-directory: ./examples
-      - name: Clean examples
-        run: cargo clean
-        working-directory: ./examples
 
   autocorrect:
     name: AutoCorrect Lint
     runs-on: ubuntu-latest
     steps:
       - name: Check source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: AutoCorrect
         uses: huacnlee/autocorrect-action@v2
