@@ -138,7 +138,6 @@ members = [
   "value",
   "parser",
   "derive",
-  "integrations/poem",
   "integrations/rocket",
   "integrations/warp",
   "integrations/axum",
