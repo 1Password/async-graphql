@@ -9,6 +9,7 @@ pub async fn test_object() {
 
             #[async_graphql::Object]
             impl $test_name {
+                #[allow(dead_code)]
                 async fn value(&self) -> i32 {
                     self.value
                 }
@@ -30,6 +31,7 @@ pub async fn test_subscription() {
 
             #[async_graphql::Subscription]
             impl $test_name {
+                #[allow(dead_code)]
                 async fn value(&self) -> impl futures_util::stream::Stream<Item = i32> + 'static {
                     let value = self.value;
                     futures_util::stream::once(async move { value })
@@ -46,6 +48,7 @@ pub async fn test_scalar() {
     macro_rules! test_data {
         ($test_name:ident) => {
             #[derive(Debug, Clone)]
+            #[expect(dead_code)]
             pub struct $test_name(i64);
 
             #[async_graphql::Scalar]
@@ -74,6 +77,7 @@ pub async fn test_oneof_object_type() {
     macro_rules! test_data {
         ($test_name:ident, $type1:ty, $type2:ty) => {
             #[derive(async_graphql::OneofObject)]
+            #[expect(dead_code)]
             enum $test_name {
                 Type1($type1),
                 Type2($type2),

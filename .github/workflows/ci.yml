@@ -96,7 +96,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
           components: clippy
       - name: Check with clippy
-        run: cargo clippy --all
+        run: cargo clippy --all --all-features --all-targets
 
   book_examples:
     name: Test book examples

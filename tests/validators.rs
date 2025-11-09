@@ -8,6 +8,7 @@ use futures_util::{Stream, StreamExt};
 
 #[tokio::test]
 pub async fn test_all_validator() {
+    #[expect(dead_code)]
     struct Query;
 
     #[Object]

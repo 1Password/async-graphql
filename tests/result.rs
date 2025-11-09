@@ -113,6 +113,7 @@ pub async fn test_custom_error() {
 
     #[derive(Interface)]
     #[graphql(field(name = "value2", ty = "i32"))]
+    #[expect(dead_code)]
     enum MyInterface {
         MyObj(MyObj),
     }
@@ -121,11 +122,13 @@ pub async fn test_custom_error() {
 
     #[Object]
     impl Query {
+        #[allow(dead_code)]
         async fn value(&self) -> Result<i32, MyError> {
             Err(MyError)
         }
     }
 
+    #[expect(dead_code)]
     struct Subscription;
 
     #[Subscription]
