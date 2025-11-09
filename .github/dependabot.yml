@@ -7,7 +7,8 @@ updates:
     directory: "/"
     groups:
       cargo:
-        update-types: "patch"
+        update-types:
+          - "patch"
     schedule:
       interval: "monthly"
 
