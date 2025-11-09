@@ -6,7 +6,8 @@ updates:
   - package-ecosystem: "cargo"
     directory: "/"
     groups:
-      update-types: "patch"
+      cargo:
+        update-types: "patch"
     schedule:
       interval: "monthly"
 
