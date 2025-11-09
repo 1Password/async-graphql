@@ -42,7 +42,7 @@ impl<'a> SubscriptionFieldFuture<'a> {
 }
 
 type BoxResolverFn =
-    Arc<(dyn for<'a> Fn(ResolverContext<'a>) -> SubscriptionFieldFuture<'a> + Send + Sync)>;
+    Arc<dyn for<'a> Fn(ResolverContext<'a>) -> SubscriptionFieldFuture<'a> + Send + Sync>;
 
 /// A GraphQL subscription field
 pub struct SubscriptionField {
