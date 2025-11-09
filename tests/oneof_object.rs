@@ -271,6 +271,7 @@ async fn test_oneof_object_vec() {
     use async_graphql::*;
 
     #[derive(SimpleObject)]
+    #[expect(dead_code)]
     pub struct User {
         name: String,
     }

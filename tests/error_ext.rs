@@ -180,10 +180,12 @@ pub async fn test_failure2() {
         }
     }
 
+    #[allow(dead_code)]
     struct Query;
 
     #[Object]
     impl Query {
+        #[allow(dead_code)]
         async fn failure(&self) -> Result<i32, MyError> {
             Err(MyError::Error1)
         }
