@@ -5,10 +5,6 @@ version: 2
 updates:
   - package-ecosystem: "cargo"
     directory: "/"
-    groups:
-      cargo:
-        update-types:
-          - "patch"
     schedule:
       interval: "monthly"
 
