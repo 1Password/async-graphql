@@ -7,7 +7,7 @@ use crate::{InputValueError, InputValueResult, Scalar, ScalarType, Value};
 /// The input/output is a string in RFC3339 format.
 #[Scalar(
     internal,
-    name = "DateTime",
+    name = "ChronoDateTimeFixedOffset",
     specified_by_url = "https://datatracker.ietf.org/doc/html/rfc3339"
 )]
 impl ScalarType for DateTime<FixedOffset> {
@@ -28,7 +28,7 @@ impl ScalarType for DateTime<FixedOffset> {
 /// The input/output is a string in RFC3339 format.
 #[Scalar(
     internal,
-    name = "DateTime",
+    name = "ChronoDateTimeLocal",
     specified_by_url = "https://datatracker.ietf.org/doc/html/rfc3339"
 )]
 impl ScalarType for DateTime<Local> {
@@ -49,7 +49,7 @@ impl ScalarType for DateTime<Local> {
 /// The input/output is a string in RFC3339 format.
 #[Scalar(
     internal,
-    name = "DateTime",
+    name = "ChronoDateTime",
     specified_by_url = "https://datatracker.ietf.org/doc/html/rfc3339"
 )]
 impl ScalarType for DateTime<Utc> {

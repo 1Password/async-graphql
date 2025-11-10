@@ -1,23 +1,22 @@
-use std::str::FromStr;
-
-use chrono::Duration;
+use jiff::Span;
 
 use crate::{InputValueError, InputValueResult, Scalar, ScalarType, Value};
 
-/// Implement the Duration scalar
+/// Implement the Span scalar
 ///
 /// The input/output is a string in ISO8601 format.
+/// Jiff's Span type represents a duration with calendar-aware units (years, months, days, hours, etc.)
 #[Scalar(
     internal,
-    name = "ChronoDuration",
+    name = "JiffSpan",
     specified_by_url = "https://en.wikipedia.org/wiki/ISO_8601#Durations"
 )]
-impl ScalarType for Duration {
+impl ScalarType for Span {
     fn parse(value: Value) -> InputValueResult<Self> {
         match &value {
-            Value::String(s) => Ok(Duration::from_std(std::time::Duration::from(
-                iso8601::Duration::from_str(s)?,
-            ))?),
+            Value::String(s) => s
+                .parse::<Span>()
+                .map_err(|e| InputValueError::custom(e.to_string())),
             _ => Err(InputValueError::expected_type(value)),
         }
     }

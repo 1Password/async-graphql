@@ -66,6 +66,35 @@ impl ScalarType for UtcDateTime {
     }
 }
 
+#[cfg(all(feature = "jiff-0_2", not(feature = "chrono")))]
+#[Scalar(internal, name = "DateTime")]
+impl ScalarType for UtcDateTime {
+    fn parse(value: Value) -> InputValueResult<Self> {
+        match &value {
+            Value::String(s) => {
+                // Parse as jiff::Timestamp, then convert to bson::DateTime via milliseconds
+                let timestamp: jiff::Timestamp = s
+                    .parse()
+                    .map_err(|e: jiff::Error| InputValueError::custom(e.to_string()))?;
+                let millis = timestamp
+                    .as_millisecond()
+                    .try_into()
+                    .map_err(|_| InputValueError::custom("timestamp out of range"))?;
+                Ok(UtcDateTime::from_millis(millis))
+            }
+            _ => Err(InputValueError::expected_type(value)),
+        }
+    }
+
+    fn to_value(&self) -> Value {
+        // Convert bson::DateTime to jiff::Timestamp via milliseconds
+        let millis = self.timestamp_millis();
+        let timestamp = jiff::Timestamp::from_millisecond(millis)
+            .expect("valid BSON timestamp should convert to jiff::Timestamp");
+        Value::String(timestamp.to_string())
+    }
+}
+
 #[Scalar(internal, name = "JSON")]
 impl ScalarType for Bson {
     fn parse(value: Value) -> InputValueResult<Self> {
