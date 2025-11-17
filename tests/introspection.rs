@@ -1396,7 +1396,7 @@ pub async fn test_introspection_default() {
     pub struct DefaultInput {
         #[graphql(default)]
         pub str: String,
-        #[graphql(default_with = "NaiveDate::from_ymd(2016, 7, 8).and_hms(9, 10, 11)")]
+        #[graphql(default_with = "NaiveDate::from_ymd_opt(2016, 7, 8).unwrap().and_hms_opt(9, 10, 11).unwrap()")]
         pub date: NaiveDateTime,
         // a required json with no default
         pub json: serde_json::Value,
@@ -1461,7 +1461,7 @@ pub async fn test_introspection_default() {
                   "kind": "NON_NULL",
                   "ofType": {
                       "kind": "SCALAR",
-                      "name": "NaiveDateTime"
+                      "name": "ChronoNaiveDateTime"
                   },
                 },
               },

@@ -170,7 +170,7 @@ pub async fn test_override_description() {
 
     assert_eq!(
         schema
-            .execute(r#"{ __type(name: "DateTime") { description } }"#)
+            .execute(r#"{ __type(name: "ChronoDateTime") { description } }"#)
             .await
             .data,
         value!({

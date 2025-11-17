@@ -2,7 +2,7 @@ use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 
 use crate::{InputValueError, InputValueResult, Scalar, ScalarType, Value};
 
-#[Scalar(internal)]
+#[Scalar(internal, name = "ChronoNaiveDate")]
 /// ISO 8601 calendar date without timezone.
 /// Format: %Y-%m-%d
 ///
@@ -23,7 +23,7 @@ impl ScalarType for NaiveDate {
     }
 }
 
-#[Scalar(internal)]
+#[Scalar(internal, name = "ChronoNaiveTime")]
 /// ISO 8601 time without timezone.
 /// Allows for the nanosecond precision and optional leap second representation.
 /// Format: %H:%M:%S%.f
@@ -44,7 +44,7 @@ impl ScalarType for NaiveTime {
     }
 }
 
-#[Scalar(internal)]
+#[Scalar(internal, name = "ChronoNaiveDateTime")]
 /// ISO 8601 combined date and time without timezone.
 ///
 /// # Examples
