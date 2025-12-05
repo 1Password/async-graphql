@@ -29,6 +29,14 @@ mod decimal;
 mod duration;
 #[cfg(feature = "chrono")]
 mod naive_time;
+#[cfg(feature = "jiff-0_2")]
+mod jiff_civil;
+#[cfg(feature = "jiff-0_2")]
+mod jiff_datetime;
+#[cfg(feature = "jiff-0_2")]
+mod jiff_duration;
+#[cfg(feature = "jiff-tz")]
+mod jiff_tz;
 #[cfg(feature = "secrecy")]
 mod secrecy;
 #[cfg(feature = "smol_str")]
