@@ -104,7 +104,7 @@ tracing-futures = { version = "0.2.5", optional = true, features = [
 ] }
 tracing = { version = "0.1.43", optional = true }
 url = { version = "2.5.0", optional = true }
-uuid = { version = "1.8.0", optional = true, features = ["v4", "serde"] }
+uuid = { version = "1.19.0", optional = true, features = ["v4", "serde"] }
 tempfile = { version = "3.23.0", optional = true }
 
 # Non-feature optional dependencies
