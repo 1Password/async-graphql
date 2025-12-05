@@ -21,7 +21,7 @@ boxed-trait = []
 async-graphql-parser.workspace = true
 
 Inflector = "0.11.4"
-darling = "0.21.3"
+darling = "0.23.0"
 proc-macro-crate = "3.4.0"
 proc-macro2 = "1.0.79"
 quote = "1.0.42"
