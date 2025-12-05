@@ -17,7 +17,7 @@ async-graphql.workspace = true
 bytes.workspace = true
 futures-util.workspace = true
 serde_json.workspace = true
-tokio = { version = "1.36.0", features = ["time"] }
+tokio = { version = "1.47.2", features = ["time"] }
 tokio-util = { workspace = true, default-features = false, features = [
     "io",
     "compat",
