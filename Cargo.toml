@@ -97,7 +97,7 @@ time = { version = "0.3.36", optional = true, features = [
   "formatting",
   "macros",
 ] }
-tokio = { version = "1.37.0", features = ["sync"], optional = true }
+tokio = { version = "1.47.2", features = ["sync"], optional = true }
 tracing-futures = { version = "0.2.5", optional = true, features = [
   "std-future",
   "futures-03",
@@ -119,7 +119,7 @@ schemars = { version = "1", optional = true }
 
 [dev-dependencies]
 futures-channel = "0.3.30"
-tokio = { version = "1.37.0", features = [
+tokio = { version = "1.47.2", features = [
   "macros",
   "rt-multi-thread",
   "sync",
