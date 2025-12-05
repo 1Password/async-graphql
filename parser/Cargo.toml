@@ -19,4 +19,4 @@ serde_json.workspace = true
 
 [dev-dependencies]
 pest_generator = "2.8.2"
-proc-macro2 = "1.0.79"
+proc-macro2 = "1.0.103"
