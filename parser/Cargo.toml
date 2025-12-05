@@ -18,5 +18,5 @@ serde.workspace = true
 serde_json.workspace = true
 
 [dev-dependencies]
-pest_generator = "2.7.8"
+pest_generator = "2.8.2"
 proc-macro2 = "1.0.79"
