@@ -23,7 +23,7 @@ async-graphql-parser.workspace = true
 Inflector = "0.11.4"
 darling = "0.23.0"
 proc-macro-crate = "3.4.0"
-proc-macro2 = "1.0.103"
+proc-macro2 = "1.0.104"
 quote = "1.0.42"
 syn = { version = "2.0.106", features = ["extra-traits", "visit-mut", "visit"] }
 thiserror.workspace = true
