@@ -154,5 +154,5 @@ bytes = { version = "1.11.0", features = ["serde"] }
 thiserror = "2.0.17"
 async-trait = "0.1.79"
 futures-util = { version = "0.3.30", default-features = false }
-tokio-util = { version = "0.7.17", default-features = false }
+tokio-util = { version = "0.7.18", default-features = false }
 http = { package = "http", version = "1.4.0" }
