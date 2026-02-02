@@ -13,7 +13,7 @@ use crate::{
     output_type::OutputType,
     utils::{
         GeneratorResult, extract_input_args, gen_boxed_trait, gen_deprecation, gen_directive_calls,
-        generate_default, generate_guards, get_cfg_attrs, get_crate_name, get_rustdoc,
+        generate_default, generate_guards, get_cfg_attrs, get_crate_path, get_rustdoc,
         get_type_path_and_name, parse_complexity_expr, parse_graphql_attrs, remove_graphql_attrs,
         visible_fn,
     },
@@ -23,7 +23,7 @@ pub fn generate(
     object_args: &args::ComplexObject,
     item_impl: &mut ItemImpl,
 ) -> GeneratorResult<TokenStream> {
-    let crate_name = get_crate_name(object_args.internal);
+    let crate_name = get_crate_path(&object_args.crate_path, object_args.internal);
     let boxed_trait = gen_boxed_trait(&crate_name);
     let (self_ty, _) = get_type_path_and_name(item_impl.self_ty.as_ref())?;
     let generics = &item_impl.generics;
@@ -40,13 +40,10 @@ pub fn generate(
                 parse_graphql_attrs(&method.attrs)?.unwrap_or_default();
 
             for derived in method_args.derived {
-                if derived.name.is_some() && derived.into.is_some() {
+                if let Some((name, into)) = derived.name.zip(derived.into) {
                     let base_function_name = &method.sig.ident;
-                    let name = derived.name.unwrap();
                     let with = derived.with;
-                    let into = Type::Verbatim(
-                        proc_macro2::TokenStream::from_str(&derived.into.unwrap()).unwrap(),
-                    );
+                    let into = Type::Verbatim(proc_macro2::TokenStream::from_str(&into).unwrap());
 
                     let mut new_impl = method.clone();
                     new_impl.sig.ident = name;
@@ -54,21 +51,15 @@ pub fn generate(
                         syn::parse2::<ReturnType>(quote! { -> #crate_name::Result<#into> })
                             .expect("invalid result type");
 
-                    let should_create_context = new_impl
-                        .sig
-                        .inputs
-                        .iter()
-                        .nth(1)
-                        .map(|x| {
-                            if let FnArg::Typed(pat) = x
-                                && let Type::Reference(TypeReference { elem, .. }) = &*pat.ty
-                                && let Type::Path(path) = elem.as_ref()
-                            {
-                                return path.path.segments.last().unwrap().ident != "Context";
-                            };
-                            true
-                        })
-                        .unwrap_or(true);
+                    let should_create_context = new_impl.sig.inputs.iter().nth(1).is_none_or(|x| {
+                        if let FnArg::Typed(pat) = x
+                            && let Type::Reference(TypeReference { elem, .. }) = &*pat.ty
+                            && let Type::Path(path) = elem.as_ref()
+                        {
+                            return path.path.segments.last().unwrap().ident != "Context";
+                        };
+                        true
+                    });
 
                     if should_create_context {
                         let arg_ctx = syn::parse2::<FnArg>(quote! { ctx: &Context<'_> })
@@ -174,6 +165,7 @@ pub fn generate(
             let external = method_args.external;
             let shareable = method_args.shareable;
             let directives = gen_directive_calls(
+                &crate_name,
                 &method_args.directives,
                 TypeDirectiveLocation::FieldDefinition,
             );
@@ -272,8 +264,11 @@ pub fn generate(
                     .iter()
                     .map(|tag| quote!(::std::string::ToString::to_string(#tag)))
                     .collect::<Vec<_>>();
-                let directives =
-                    gen_directive_calls(directives, TypeDirectiveLocation::ArgumentDefinition);
+                let directives = gen_directive_calls(
+                    &crate_name,
+                    directives,
+                    TypeDirectiveLocation::ArgumentDefinition,
+                );
                 let deprecation = gen_deprecation(deprecation, &crate_name);
 
                 schema_args.push(quote! {

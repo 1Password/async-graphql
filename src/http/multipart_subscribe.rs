@@ -1,11 +1,10 @@
-use std::time::Duration;
+use std::{pin::pin, time::Duration};
 
 use bytes::{BufMut, Bytes, BytesMut};
-use futures_timer::Delay;
 use futures_util::{FutureExt, Stream, StreamExt, stream::BoxStream};
 use mime::Mime;
 
-use crate::Response;
+use crate::{Response, runtime::Timer};
 
 static PART_HEADER: Bytes =
     Bytes::from_static(b"--graphql\r\nContent-Type: application/json\r\n\r\n");
@@ -16,14 +15,18 @@ static HEARTBEAT: Bytes = Bytes::from_static(b"{}\r\n");
 /// Create a stream for `multipart/mixed` responses.
 ///
 /// Reference: <https://www.apollographql.com/docs/router/executing-operations/subscription-multipart-protocol/>
-pub fn create_multipart_mixed_stream<'a>(
+pub fn create_multipart_mixed_stream<'a, T>(
     input: impl Stream<Item = Response> + Send + Unpin + 'a,
+    timer: T,
     heartbeat_interval: Duration,
-) -> BoxStream<'a, Bytes> {
+) -> BoxStream<'a, Bytes>
+where
+    T: Timer,
+{
     let mut input = input.fuse();
-    let mut heartbeat_timer = Delay::new(heartbeat_interval).fuse();
 
-    async_stream::stream! {
+    asynk_strim::stream_fn(move |mut yielder| async move {
+        let mut heartbeat_timer = pin!(timer.delay(heartbeat_interval).fuse());
         loop {
             futures_util::select! {
                 item = input.next() => {
@@ -35,23 +38,23 @@ pub fn create_multipart_mixed_stream<'a>(
                                 continue;
                             }
 
-                            yield PART_HEADER.clone();
-                            yield writer.into_inner().freeze();
-                            yield CRLF.clone();
+                            yielder.yield_item(PART_HEADER.clone()).await;
+                            yielder.yield_item(writer.into_inner().freeze()).await;
+                            yielder.yield_item(CRLF.clone()).await;
                         }
                         None => break,
                     }
                 }
                 _ = heartbeat_timer => {
-                    heartbeat_timer = Delay::new(heartbeat_interval).fuse();
-                    yield PART_HEADER.clone();
-                    yield HEARTBEAT.clone();
+                    heartbeat_timer.set(timer.delay(heartbeat_interval).fuse());
+                    yielder.yield_item(PART_HEADER.clone()).await;
+                    yielder.yield_item(HEARTBEAT.clone()).await;
                 }
             }
         }
 
-        yield EOF.clone();
-    }
+        yielder.yield_item(EOF.clone()).await;
+    })
     .boxed()
 }
 

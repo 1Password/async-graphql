@@ -5,7 +5,7 @@ use syn::{FnArg, ItemFn, Pat, ext::IdentExt};
 use crate::{
     args::{self, Argument, RenameRuleExt, RenameTarget},
     utils::{
-        GeneratorResult, gen_deprecation, generate_default, get_crate_name, get_rustdoc,
+        GeneratorResult, gen_deprecation, generate_default, get_crate_path, get_rustdoc,
         parse_graphql_attrs, remove_graphql_attrs, visible_fn,
     },
 };
@@ -14,7 +14,7 @@ pub fn generate(
     directive_args: &args::TypeDirective,
     item_fn: &mut ItemFn,
 ) -> GeneratorResult<TokenStream> {
-    let crate_name = get_crate_name(directive_args.internal);
+    let crate_name = get_crate_path(&directive_args.crate_path, directive_args.internal);
     let ident = &item_fn.sig.ident;
     let vis = &item_fn.vis;
     let directive_name = if !directive_args.name_type {
@@ -141,6 +141,7 @@ pub fn generate(
         .collect::<Vec<_>>();
 
     let expanded = quote! {
+        #[allow(missing_docs)]
         #[allow(non_camel_case_types)]
         #vis struct #ident;
 
@@ -172,6 +173,7 @@ pub fn generate(
        #(impl #crate_name::registry::location_traits::#location_traits for #ident {})*
 
         impl #ident {
+            #[allow(missing_docs)]
             pub fn apply(#(#input_args),*) -> #crate_name::registry::MetaDirectiveInvocation {
                 let directive = ::std::borrow::Cow::into_owned(#directive_name);
                 let mut args = #crate_name::indexmap::IndexMap::new();

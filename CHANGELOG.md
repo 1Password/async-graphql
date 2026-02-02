@@ -4,6 +4,71 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# Unreleased
+
+- Change response `errors` to be serialized before `data` [#1793](https://github.com/async-graphql/async-graphql/pull/1793)
+
+# [8.0.0-rc.1] 2026-01-22
+
+- Replace mutexes with lock-free data structures
+- Replace `fnv` with `rustc-hash` for faster hashing on 64-bit architectures
+- Remove allocations from `Delay` impl
+- Delete `tide` integration (it's been umaintained for a while, just like async-std)
+- Replace `Inflector` with `heck` (for real this time) [#1785](https://github.com/async-graphql/async-graphql/pull/1785)
+- Remove CBOR feature [#1786](https://github.com/async-graphql/async-graphql/pull/1786)
+- Remove BSON integration [#1786](https://github.com/async-graphql/async-graphql/pull/1786)
+- Remove hashbrown integration [#1786](https://github.com/async-graphql/async-graphql/pull/1786)
+- Remove `tokio-sync` feature [#1786](https://github.com/async-graphql/async-graphql/pull/1786)
+- Remove `uuid-validator`feature [#1786](https://github.com/async-graphql/async-graphql/pull/1786)
+- Remove `zxcvbn` integration [#1786](https://github.com/async-graphql/async-graphql/pull/1786)
+- Remove `smol_str` integration [#1786](https://github.com/async-graphql/async-graphql/pull/1786)
+- Remove `bigdecimal` integration [#1786](https://github.com/async-graphql/async-graphql/pull/1786)
+- Remove Altair integration [#1791](https://github.com/async-graphql/async-graphql/pull/1791)
+- Remove GraphQL Playground integration [#1791](https://github.com/async-graphql/async-graphql/pull/1791)
+- Upgrade GraphiQL to v5 [#1791](https://github.com/async-graphql/async-graphql/pull/1791)
+- Abstract over timers and spawn methods [#1789](https://github.com/async-graphql/async-graphql/pull/1789)
+- Upgrade warp integration to v0.4
+- Move OpenTelemetry to extras crate and upgrade [#1792](https://github.com/async-graphql/async-graphql/pull/1792)
+
+# [7.2.0] 2026-01-16
+
+- fix: Use runtime timers when available [#1780](https://github.com/async-graphql/async-graphql/pull/1780)
+- Fix validation failure with variables in multiple operations [#1669](https://github.com/async-graphql/async-graphql/pull/1669)
+- Add `trace_scalars` option to Tracing and OpenTelemetry extensions [#1781](https://github.com/async-graphql/async-graphql/pull/1781)
+- Macro hygiene [#1782](https://github.com/async-graphql/async-graphql/pull/1782)
+- Add `jiff` support [#1778](https://github.com/async-graphql/async-graphql/pull/1778)
+
+# [7.1.0] 2026-01-02
+
+- Replace async-stream in favour of asynk-strim
+- Add `From<Option<T>>` for `ConstValue` [#1739](https://github.com/async-graphql/async-graphql/pull/1739)
+- Don't bail early on first error when resolving containers [#1746](https://github.com/async-graphql/async-graphql/pull/1746)
+- Allow accessing data on schema level [#1727](https://github.com/async-graphql/async-graphql/pull/1727)
+- Mark generated interface methods as allowing missing docs [#1730](https://github.com/async-graphql/async-graphql/pull/1730)
+- Tracing support for subscriptions of the axum integration [#1667](https://github.com/async-graphql/async-graphql/pull/1667)
+
+# [7.0.19] 2026-01-01
+
+- Revert heck migration (breaks current schemas)
+
+# [7.0.18] 2026-01-01
+
+- update MSRV to `1.89.0`
+- Fix DataLoader with tracing [#1749](https://github.com/async-graphql/async-graphql/pull/1749)
+- Fix clippy lints [#1770](https://github.com/async-graphql/async-graphql/pull/1770)
+- Upgrade hashbrown to 0.16 [#1771](https://github.com/async-graphql/async-graphql/pull/1771)
+- Upgrade zxcvbn to 3.1 [#1771](https://github.com/async-graphql/async-graphql/pull/1771)
+- Upgrade lru to 0.16 [#1771](https://github.com/async-graphql/async-graphql/pull/1771)
+- Upgrade handlebars to 6.3 [#1771](https://github.com/async-graphql/async-graphql/pull/1771)
+- Upgrade schemars to 1.2 [#1771](https://github.com/async-graphql/async-graphql/pull/1771)
+- Upgrade darling to 0.23
+- Upgrade strum to 0.27
+- Upgrade criterion to 0.8
+- Move from Inflector to heck (since Inflector is archived) [#1732](https://github.com/async-graphql/async-graphql/pull/1732)
+- Remove double boxing from subscription streams [#1736](https://github.com/async-graphql/async-graphql/pull/1736)
+- Fix unblock feature without tempfile [#1718](https://github.com/async-graphql/async-graphql/pull/1718)
+- Upgrade thiserror to 2.0
+
 # [7.0.17] 2025-05-24
 
 - update MSRV to `1.86.0`

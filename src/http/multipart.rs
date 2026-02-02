@@ -85,81 +85,58 @@ pub(super) async fn receive_batch_multipart(
             Some("map") => {
                 let map_bytes = field.bytes().await?;
 
-                match (content_type.type_(), content_type.subtype()) {
-                    // cbor is in application/octet-stream.
-                    // TODO: wait for mime to add application/cbor and match against that too
-                    // Note: we actually differ here from the inoffical spec for this:
-                    // (https://github.com/jaydenseric/graphql-multipart-request-spec#multipart-form-field-structure)
-                    // It says: "map: A JSON encoded map of where files occurred in the operations.
-                    // For each file, the key is the file multipart form field name and the value is
-                    // an array of operations paths." However, I think, that
-                    // since we accept CBOR as operation, which is valid, we should also accept it
-                    // as the mapping for the files.
-                    #[cfg(feature = "cbor")]
-                    (mime::OCTET_STREAM, _) | (mime::APPLICATION, mime::OCTET_STREAM) => {
-                        map = Some(
-                            serde_cbor::from_slice::<HashMap<String, Vec<String>>>(&map_bytes)
-                                .map_err(|e| ParseRequestError::InvalidFilesMap(Box::new(e)))?,
-                        );
-                    }
-                    // default to json
-                    _ => {
-                        map = Some(
-                            serde_json::from_slice::<HashMap<String, Vec<String>>>(&map_bytes)
-                                .map_err(|e| ParseRequestError::InvalidFilesMap(Box::new(e)))?,
-                        );
-                    }
-                }
+                map = Some(
+                    serde_json::from_slice::<HashMap<String, Vec<String>>>(&map_bytes)
+                        .map_err(|e| ParseRequestError::InvalidFilesMap(Box::new(e)))?,
+                );
             }
             _ => {
-                if let Some(name) = field.name().map(ToString::to_string) {
-                    if let Some(filename) = field.file_name().map(ToString::to_string) {
-                        let content_type = field.content_type().map(ToString::to_string);
+                if let Some(name) = field.name().map(ToString::to_string)
+                    && let Some(filename) = field.file_name().map(ToString::to_string)
+                {
+                    let content_type = field.content_type().map(ToString::to_string);
 
-                        #[cfg(feature = "tempfile")]
-                        let content = {
-                            let mut field = field;
+                    #[cfg(feature = "tempfile")]
+                    let content = {
+                        let mut field = field;
 
-                            #[cfg(feature = "unblock")]
-                            {
-                                use std::io::SeekFrom;
+                        #[cfg(feature = "unblock")]
+                        {
+                            use std::io::SeekFrom;
 
-                                use blocking::Unblock;
-                                use futures_util::{AsyncSeekExt, AsyncWriteExt};
+                            use blocking::Unblock;
+                            use futures_util::{AsyncSeekExt, AsyncWriteExt};
 
-                                let mut file = Unblock::new(
-                                    tempfile::tempfile().map_err(ParseRequestError::Io)?,
-                                );
-                                while let Some(chunk) = field.chunk().await? {
-                                    file.write_all(&chunk)
-                                        .await
-                                        .map_err(ParseRequestError::Io)?;
-                                }
-                                file.seek(SeekFrom::Start(0))
+                            let mut file =
+                                Unblock::new(tempfile::tempfile().map_err(ParseRequestError::Io)?);
+                            while let Some(chunk) = field.chunk().await? {
+                                file.write_all(&chunk)
                                     .await
                                     .map_err(ParseRequestError::Io)?;
-                                file.into_inner().await
                             }
+                            file.seek(SeekFrom::Start(0))
+                                .await
+                                .map_err(ParseRequestError::Io)?;
+                            file.into_inner().await
+                        }
 
-                            #[cfg(not(feature = "unblock"))]
-                            {
-                                use std::io::{Seek, Write};
+                        #[cfg(not(feature = "unblock"))]
+                        {
+                            use std::io::{Seek, Write};
 
-                                let mut file =
-                                    tempfile::tempfile().map_err(ParseRequestError::Io)?;
-                                while let Some(chunk) = field.chunk().await? {
-                                    file.write_all(&chunk).map_err(ParseRequestError::Io)?;
-                                }
-                                file.rewind()?;
-                                file
+                            let mut file = tempfile::tempfile().map_err(ParseRequestError::Io)?;
+                            while let Some(chunk) = field.chunk().await? {
+                                file.write_all(&chunk).map_err(ParseRequestError::Io)?;
                             }
-                        };
+                            file.rewind()?;
+                            file
+                        }
+                    };
 
-                        #[cfg(not(feature = "tempfile"))]
-                        let content = field.bytes().await?;
+                    #[cfg(not(feature = "tempfile"))]
+                    let content = field.bytes().await?;
 
-                        files.push((name, filename, content_type, content));
-                    }
+                    files.push((name, filename, content_type, content));
                 }
             }
         }
@@ -186,10 +163,10 @@ pub(super) async fn receive_batch_multipart(
                         let idx = s.next().and_then(|idx| idx.parse::<usize>().ok());
                         let path = s.next();
 
-                        if let (Some(idx), Some(path)) = (idx, path) {
-                            if let Some(request) = requests.get_mut(idx) {
-                                request.set_upload(path, upload.try_clone()?);
-                            }
+                        if let (Some(idx), Some(path)) = (idx, path)
+                            && let Some(request) = requests.get_mut(idx)
+                        {
+                            request.set_upload(path, upload.try_clone()?);
                         }
                     }
                 }
