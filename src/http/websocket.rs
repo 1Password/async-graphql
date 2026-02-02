@@ -9,7 +9,6 @@ use std::{
     time::{Duration, Instant},
 };
 
-use futures_timer::Delay;
 use futures_util::{
     FutureExt, StreamExt,
     future::{BoxFuture, Ready},
@@ -18,7 +17,7 @@ use futures_util::{
 use pin_project_lite::pin_project;
 use serde::{Deserialize, Serialize};
 
-use crate::{Data, Error, Executor, Request, Response, Result};
+use crate::{Data, Error, Executor, Request, Response, Result, runtime::Timer as RtTimer};
 
 /// All known protocols based on WebSocket.
 pub const ALL_WEBSOCKET_PROTOCOLS: [&str; 2] = ["graphql-transport-ws", "graphql-ws"];
@@ -67,21 +66,26 @@ impl WsMessage {
 
 struct Timer {
     interval: Duration,
-    delay: Delay,
+    rt_timer: Box<dyn RtTimer>,
+    future: BoxFuture<'static, ()>,
 }
 
 impl Timer {
     #[inline]
-    fn new(interval: Duration) -> Self {
+    fn new<T>(rt_timer: T, interval: Duration) -> Self
+    where
+        T: RtTimer,
+    {
         Self {
             interval,
-            delay: Delay::new(interval),
+            future: rt_timer.delay(interval),
+            rt_timer: Box::new(rt_timer),
         }
     }
 
     #[inline]
     fn reset(&mut self) {
-        self.delay.reset(self.interval);
+        self.future = self.rt_timer.delay(self.interval);
     }
 }
 
@@ -90,9 +94,9 @@ impl Stream for Timer {
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = &mut *self;
-        match this.delay.poll_unpin(cx) {
+        match this.future.poll_unpin(cx) {
             Poll::Ready(_) => {
-                this.delay.reset(this.interval);
+                this.reset();
                 Poll::Ready(Some(()))
             }
             Poll::Pending => Poll::Pending,
@@ -270,9 +274,12 @@ where
     ///
     /// NOTE: Only used for the `graphql-ws` protocol.
     #[must_use]
-    pub fn keepalive_timeout(self, timeout: impl Into<Option<Duration>>) -> Self {
+    pub fn keepalive_timeout<T>(self, timer: T, timeout: impl Into<Option<Duration>>) -> Self
+    where
+        T: RtTimer,
+    {
         Self {
-            keepalive_timer: timeout.into().map(Timer::new),
+            keepalive_timer: timeout.into().map(|timeout| Timer::new(timer, timeout)),
             ..self
         }
     }
@@ -296,24 +303,24 @@ where
             return Poll::Ready(None);
         }
 
-        if let Some(keepalive_timer) = this.keepalive_timer {
-            if let Poll::Ready(Some(())) = keepalive_timer.poll_next_unpin(cx) {
-                return match this.protocol {
-                    Protocols::SubscriptionsTransportWS => {
-                        *this.close = true;
-                        Poll::Ready(Some(WsMessage::Text(
-                            serde_json::to_string(&ServerMessage::ConnectionError {
-                                payload: Error::new("timeout"),
-                            })
-                            .unwrap(),
-                        )))
-                    }
-                    Protocols::GraphQLWS => {
-                        *this.close = true;
-                        Poll::Ready(Some(WsMessage::Close(3008, "timeout".to_string())))
-                    }
-                };
-            }
+        if let Some(keepalive_timer) = this.keepalive_timer
+            && let Poll::Ready(Some(())) = keepalive_timer.poll_next_unpin(cx)
+        {
+            return match this.protocol {
+                Protocols::SubscriptionsTransportWS => {
+                    *this.close = true;
+                    Poll::Ready(Some(WsMessage::Text(
+                        serde_json::to_string(&ServerMessage::ConnectionError {
+                            payload: Error::new("timeout"),
+                        })
+                        .unwrap(),
+                    )))
+                }
+                Protocols::GraphQLWS => {
+                    *this.close = true;
+                    Poll::Ready(Some(WsMessage::Close(3008, "timeout".to_string())))
+                }
+            };
         }
 
         if this.init_fut.is_none() && this.ping_fut.is_none() {

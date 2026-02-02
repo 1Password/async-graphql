@@ -7,6 +7,7 @@ use async_graphql::{
         ALL_WEBSOCKET_PROTOCOLS, DefaultOnConnInitType, DefaultOnPingType, WebSocketProtocols,
         WsMessage, default_on_connection_init, default_on_ping,
     },
+    runtime::TokioTimer,
 };
 use axum::{
     Error,
@@ -24,6 +25,8 @@ use futures_util::{
     stream::{SplitSink, SplitStream},
 };
 use tower_service::Service;
+#[cfg(feature = "tracing")]
+use tracing::{Instrument, Span};
 
 /// A GraphQL protocol extractor.
 ///
@@ -102,16 +105,22 @@ where
                 Err(err) => return Ok(err.into_response()),
             };
             let upgrade = match WebSocketUpgrade::from_request_parts(&mut parts, &()).await {
-                Ok(protocol) => protocol,
+                Ok(upgrade) => upgrade,
                 Err(err) => return Ok(err.into_response()),
             };
 
             let executor = executor.clone();
 
+            #[cfg(feature = "tracing")]
+            let span = Span::current();
+
             let resp = upgrade
                 .protocols(ALL_WEBSOCKET_PROTOCOLS)
                 .on_upgrade(move |stream| {
-                    GraphQLWebSocket::new(stream, executor, protocol).serve()
+                    let task = GraphQLWebSocket::new(stream, executor, protocol).serve();
+                    #[cfg(feature = "tracing")]
+                    let task = task.instrument(span);
+                    task
                 });
             Ok(resp.into_response())
         })
@@ -280,7 +289,7 @@ where
                 .connection_data(self.data)
                 .on_connection_init(self.on_connection_init)
                 .on_ping(self.on_ping.clone())
-                .keepalive_timeout(self.keepalive_timeout)
+                .keepalive_timeout(TokioTimer::default(), self.keepalive_timeout)
                 .map(|msg| match msg {
                     WsMessage::Text(text) => Message::Text(text.into()),
                     WsMessage::Close(code, status) => Message::Close(Some(CloseFrame {

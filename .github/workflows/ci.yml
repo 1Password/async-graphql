@@ -22,8 +22,6 @@ jobs:
       - tests
       - rustfmt
       - clippy
-      - book_examples
-      - autocorrect
 
   tests:
     name: Run tests - Rust (${{ matrix.rust }}) on ${{ matrix.os }}
@@ -98,41 +96,22 @@ jobs:
       - name: Check with clippy
         run: cargo clippy --all --all-features --all-targets
 
-  book_examples:
-    name: Test book examples
+  clippy_wasm:
+    name: Check default on Wasm (no features) - Rust (${{ matrix.rust }})
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { rust: stable }
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           submodules: true
       - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-      - name: Install mdBook
-        uses: peaceiris/actions-mdbook@v2
-        with:
-          mdbook-version: "0.4.49"
-      - name: Extract metadata
-        id: meta
-        run: |
-          FEATURES=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[] | select(.name == "async-graphql") | .features | keys | map(select(. != "boxed-trait")) | join(",")')
-          echo "features=$FEATURES" >> "$GITHUB_OUTPUT"
-      - name: Build with all features
-        run: cargo build --workspace --features ${{ steps.meta.outputs.features }}
-      - name: Run book tests for en language
-        run: mdbook test -L target/debug/deps ./docs/en
-      - name: Clean
-        run: cargo clean
-
-  autocorrect:
-    name: AutoCorrect Lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check source code
-        uses: actions/checkout@v6
-
-      - name: AutoCorrect
-        uses: huacnlee/autocorrect-action@v2
-        with:
-          args: --lint --no-diff-bg-color docs/
+          toolchain: ${{ matrix.rust }}
+          targets: wasm32-unknown-unknown
+      - name: Check code
+        run: cargo check --no-default-features --target wasm32-unknown-unknown

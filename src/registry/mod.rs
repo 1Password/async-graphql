@@ -775,6 +775,11 @@ impl MetaDirective {
             .map(|location| location.to_value().to_string())
             .collect::<Vec<_>>()
             .join(" | ");
+
+        if self.is_repeatable {
+            write!(sdl, " repeatable").ok();
+        }
+
         write!(sdl, " on {}", locations).ok();
         sdl
     }
@@ -1635,13 +1640,14 @@ impl Registry {
         }
 
         for ty in self.types.values() {
-            if let MetaType::Interface { possible_types, .. } = ty {
-                if ty.is_visible(ctx) && !visible_types.contains(ty.name()) {
-                    for type_name in possible_types.iter() {
-                        if visible_types.contains(type_name.as_str()) {
-                            traverse_type(ctx, &self.types, &mut visible_types, ty.name());
-                            break;
-                        }
+            if let MetaType::Interface { possible_types, .. } = ty
+                && ty.is_visible(ctx)
+                && !visible_types.contains(ty.name())
+            {
+                for type_name in possible_types.iter() {
+                    if visible_types.contains(type_name.as_str()) {
+                        traverse_type(ctx, &self.types, &mut visible_types, ty.name());
+                        break;
                     }
                 }
             }
@@ -1678,7 +1684,10 @@ fn is_system_type(name: &str) -> bool {
 
 #[cfg(test)]
 mod test {
-    use crate::registry::MetaDirectiveInvocation;
+    use crate::{
+        SDLExportOptions,
+        registry::{__DirectiveLocation, MetaDirective, MetaDirectiveInvocation},
+    };
 
     #[test]
     fn test_directive_invocation_dsl() {
@@ -1694,6 +1703,46 @@ mod test {
                 .into(),
             }
             .sdl()
+        )
+    }
+
+    #[test]
+    fn test_repeatable_directive_dsl() {
+        let expected = r#"directive @testDirective repeatable on OBJECT | INTERFACE"#;
+        let export_options = SDLExportOptions::default();
+
+        assert_eq!(
+            expected.to_string(),
+            MetaDirective {
+                name: "testDirective".to_string(),
+                description: None,
+                locations: vec![__DirectiveLocation::OBJECT, __DirectiveLocation::INTERFACE,],
+                args: Default::default(),
+                is_repeatable: true,
+                visible: None,
+                composable: None,
+            }
+            .sdl(&export_options)
+        )
+    }
+
+    #[test]
+    fn test_non_repeatable_directive_dsl() {
+        let expected = r#"directive @testDirective on OBJECT | INTERFACE"#;
+        let export_options = SDLExportOptions::default();
+
+        assert_eq!(
+            expected.to_string(),
+            MetaDirective {
+                name: "testDirective".to_string(),
+                description: None,
+                locations: vec![__DirectiveLocation::OBJECT, __DirectiveLocation::INTERFACE,],
+                args: Default::default(),
+                is_repeatable: false,
+                visible: None,
+                composable: None,
+            }
+            .sdl(&export_options)
         )
     }
 }

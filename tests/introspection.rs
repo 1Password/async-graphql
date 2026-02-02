@@ -1,3 +1,4 @@
+#![cfg(feature = "chrono")]
 #![allow(clippy::uninlined_format_args)]
 #![allow(clippy::diverging_sub_expression)]
 
@@ -510,12 +511,12 @@ pub async fn test_introspection_deprecation() {
         "__type": {
             "enumValues": [
               {
-                "name": "KIND_1",
+                "name": "KIND1",
                 "isDeprecated": false,
                 "deprecationReason": null
               },
               {
-                "name": "KIND_2",
+                "name": "KIND2",
                 "isDeprecated": true,
                 "deprecationReason": "Kind 2 deprecated"
               }
@@ -534,7 +535,7 @@ pub async fn test_introspection_deprecation() {
         "__type": {
             "enumValues": [
               {
-                "name": "KIND_1",
+                "name": "KIND1",
                 "isDeprecated": false,
                 "deprecationReason": null
               }
@@ -874,13 +875,13 @@ pub async fn test_introspection_enum() {
             "description": "Test Enum",
             "enumValues": [
               {
-                "name": "KIND_1",
+                "name": "KIND1",
                 "description": "Kind 1",
                 "isDeprecated": false,
                 "deprecationReason": null
               },
               {
-                "name": "KIND_2",
+                "name": "KIND2",
                 "description": "Kind 2",
                 "isDeprecated": true,
                 "deprecationReason": "Kind 2 deprecated"

@@ -47,7 +47,7 @@ use crate::{InputType, InputValueError, InputValueResult, Value, registry};
 /// # });
 /// ```
 #[allow(missing_docs)]
-#[derive(Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Debug, Hash, Default)]
+#[derive(Copy, Clone, Default, PartialEq, PartialOrd, Eq, Ord, Debug, Hash)]
 pub enum MaybeUndefined<T> {
     #[default]
     Undefined,

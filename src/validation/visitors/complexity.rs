@@ -53,25 +53,24 @@ impl<'ctx> Visitor<'ctx> for ComplexityCalculate<'ctx, '_> {
     fn exit_field(&mut self, ctx: &mut VisitorContext<'ctx>, field: &'ctx Positioned<Field>) {
         let children_complex = self.complexity_stack.pop().unwrap();
 
-        if let Some(MetaType::Object { fields, .. }) = ctx.parent_type() {
-            if let Some(meta_field) = fields.get(MetaTypeName::concrete_typename(
+        if let Some(MetaType::Object { fields, .. }) = ctx.parent_type()
+            && let Some(meta_field) = fields.get(MetaTypeName::concrete_typename(
                 field.node.name.node.as_str(),
-            )) {
-                if let Some(f) = &meta_field.compute_complexity {
-                    match f(
-                        ctx,
-                        self.variable_definition.unwrap_or(&[]),
-                        &field.node,
-                        children_complex,
-                    ) {
-                        Ok(n) => {
-                            *self.complexity_stack.last_mut().unwrap() += n;
-                        }
-                        Err(err) => ctx.report_error(vec![field.pos], err.to_string()),
-                    }
-                    return;
+            ))
+            && let Some(f) = &meta_field.compute_complexity
+        {
+            match f(
+                ctx,
+                self.variable_definition.unwrap_or(&[]),
+                &field.node,
+                children_complex,
+            ) {
+                Ok(n) => {
+                    *self.complexity_stack.last_mut().unwrap() += n;
                 }
+                Err(err) => ctx.report_error(vec![field.pos], err.to_string()),
             }
+            return;
         }
 
         *self.complexity_stack.last_mut().unwrap() += 1 + children_complex;
@@ -194,7 +193,7 @@ mod tests {
         let registry =
             Schema::<Query, EmptyMutation, Subscription>::create_registry(Default::default());
         let doc = parse_query(query).unwrap();
-        let mut ctx = VisitorContext::new(&registry, &doc, None);
+        let mut ctx = VisitorContext::new(&registry, &doc, None, None);
         let mut complexity = 0;
         let mut complexity_calculate = ComplexityCalculate::new(&mut complexity);
         visit(&mut complexity_calculate, &mut ctx, &doc);
