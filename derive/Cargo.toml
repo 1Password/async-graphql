@@ -25,6 +25,6 @@ darling = "0.23.0"
 proc-macro-crate = "3.4.0"
 proc-macro2 = "1.0.106"
 quote = "1.0.44"
-syn = { version = "2.0.112", features = ["extra-traits", "visit-mut", "visit"] }
+syn = { version = "2.0.114", features = ["extra-traits", "visit-mut", "visit"] }
 thiserror.workspace = true
 strum = { version = "0.27.2", features = ["derive"] }
