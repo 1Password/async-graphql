@@ -321,9 +321,13 @@ pub async fn test_subscription_ws_transport_error() {
             "type": "next",
             "id": "1",
             "payload": {
-                "data": {
-                    "events": null,
-                },
+                "data": (
+                    if cfg!(feature = "nullable-result") {
+                        value!({ "events": { "value": null } })
+                    } else {
+                        Value::Null
+                    }
+                ),
                 "errors": [{
                     "message": "TestError",
                     "locations": [{"line": 1, "column": 25}],
