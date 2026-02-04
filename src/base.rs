@@ -11,7 +11,6 @@ use crate::{
     ContainerType, Context, ContextSelectionSet, Error, InputValueError, InputValueResult,
     Positioned, Result, ServerResult, Value,
     parser::types::Field,
-    registry::{self, Registry},
     registry::{self, Registry, SemanticNullability},
 };
 

@@ -2,7 +2,7 @@ use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn::{Error, GenericArgument, PathArguments, Result, Type};
 
-use crate::utils::get_crate_name;
+use crate::utils::get_crate_path;
 
 pub enum OutputType<'a> {
     Value(&'a Type),
@@ -45,7 +45,7 @@ impl<'a> OutputType<'a> {
     }
 
     pub fn value_type(&self, internal: bool) -> Type {
-        let crate_name = get_crate_name(internal);
+        let crate_name = get_crate_path(&None, internal);
         let tokens = match self {
             OutputType::Value(ty) => quote! {#ty},
             OutputType::Result(ty) => quote! {#crate_name::Result<#ty>},
