@@ -170,6 +170,7 @@ pub fn generate(interface_args: &args::Interface) -> GeneratorResult<TokenStream
         override_from,
         directives,
         requires_scopes,
+        semantic_non_null,
     } in &interface_args.fields
     {
         let (name, method_name) = if let Some(method) = method {
@@ -304,7 +305,7 @@ pub fn generate(interface_args: &args::Interface) -> GeneratorResult<TokenStream
             OutputType::Value(ty) => ty,
             OutputType::Result(ty) => ty,
         };
-        let schema_ty = oty.value_type();
+        let schema_ty = oty.value_type(interface_args.internal);
 
         methods.push(quote! {
             #[allow(missing_docs)]
@@ -331,6 +332,12 @@ pub fn generate(interface_args: &args::Interface) -> GeneratorResult<TokenStream
             directives,
             TypeDirectiveLocation::FieldDefinition,
         );
+        let semantic_nullability = if semantic_non_null.unwrap_or(interface_args.semantic_non_null)
+        {
+            quote! { <#schema_ty as #crate_name::OutputType>::semantic_nullability() }
+        } else {
+            quote! { #crate_name::registry::SemanticNullability::None }
+        };
 
         schema_fields.push(quote! {
             fields.insert(::std::string::ToString::to_string(#name), #crate_name::registry::MetaField {
@@ -355,6 +362,7 @@ pub fn generate(interface_args: &args::Interface) -> GeneratorResult<TokenStream
                 compute_complexity: ::std::option::Option::None,
                 directive_invocations: ::std::vec![ #(#directives),* ],
                 requires_scopes: ::std::vec![ #(#requires_scopes),* ],
+                semantic_nullability: #semantic_nullability,
             });
         });
 

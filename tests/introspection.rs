@@ -1541,7 +1541,7 @@ pub async fn test_introspection_directives() {
           }
         }
       }
-      
+
       fragment InputValue on __InputValue {
         name
         type {
@@ -1549,7 +1549,7 @@ pub async fn test_introspection_directives() {
         }
         defaultValue
       }
-      
+
       fragment TypeRef on __Type {
         kind
         name
@@ -1610,6 +1610,26 @@ pub async fn test_introspection_directives() {
             "INPUT_OBJECT"
           ],
           "args": []
+        },
+        {
+          "name": "semanticNonNull",
+          "locations": [
+            "FIELD_DEFINITION"
+          ],
+          "args": [
+            {
+              "name": "levels",
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "LIST",
+                  "name": null
+                }
+              },
+              "defaultValue": "[0]"
+            }
+          ]
         },
         {
           "name": "skip",
